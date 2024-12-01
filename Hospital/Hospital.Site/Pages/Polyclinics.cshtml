@@ -1,0 +1,229 @@
+﻿@page
+@model PolyclinicsModel
+@{
+    ViewData["Title"] = "Поликлиники";
+}
+
+<form class="row g-2">
+    <div class="col-auto">
+        <h1>Поликлиники</h1>
+    </div>
+    <div class="col-auto p-2">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">Добавить</button>
+    </div>
+</form>
+
+
+@if (Model.Polyclinics != null && Model.Polyclinics.Any())
+{
+    <table class="table table-stripped">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">Наименование</th>
+                <th scope="col">Город</th>
+                <th scope="col">Адрес</th>
+                <th scope="col">Номер</th>
+                <th scope="col">Фото</th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var polyclinic in Model.Polyclinics)
+            {
+                <tr>
+                    <td>@polyclinic.Name</td>
+                    <td>@polyclinic.TownName</td>
+                    <td>@polyclinic.Address</td>
+                    <td>@polyclinic.ContactNumber</td>
+                    @if (polyclinic.Photo is null || !polyclinic.Photo.Any())
+                    {
+                        <td>Отсутствует</td>
+                    }
+                    else
+                    {
+                        <td>
+                            <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#showPhotoModal" onclick="OnImageShow('@Convert.ToBase64String(@polyclinic.Photo)')">
+                                <img src="img/image.png">
+                            </button>
+                        </td>
+                    }      
+                    <td>
+                        <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#editModal" onclick="OnEdit('@polyclinic.Id',
+                                                                                                                      '@polyclinic.Name', 
+                                                                                                                      '@polyclinic.TownId', 
+                                                                                                                      '@polyclinic.Address',
+                                                                                                                      '@polyclinic.ContactNumber',
+                                                                                                                      '@polyclinic.Photo')">
+                            <img src="img/edit.png">
+                        </button>
+                    </td>
+                    <form method="post">
+                    <td>
+                        <input type="hidden" name="removePolyclinicId" value="@polyclinic.Id" />
+                        <button asp-page-handler="RemovePolyclinic" type="submit" class="btn btn-sm">
+                            <img src="img/remove.png">
+                        </button>
+                    </td>
+                    </form>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@*ModalWindowAddPolyclinic*@
+<div class="modal" tabindex="-1" id="addModal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавление поликлиники</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <form class="form" method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="form-floating p-1">
+                        <input class="form-control" name="addPolyclinicName" required>
+                        <label for="addPolyclinicName">Наименование:</label>
+                    </div>
+
+                    <div class="form-floating p-1">
+                        <select class="form-select" name="addPolyclinicCity" required>
+                            <option selected>Не выбран</option>
+                            @if (Model.Towns != null)
+                            {
+                                @foreach (var town in Model.Towns)
+                                {
+                                    <option value="@town.Id">@town.Name</option>
+                                }
+                            }
+                        </select>
+                        <label for="addPolyclinicCity">Город:</label>
+                    </div>
+
+                    <div class="form-floating p-1">
+                        <input class="form-control" name="addPolyclinicAddress" required>
+                        <label for="addPolyclinicAddress">Адрес:</label>
+                    </div>
+
+                    <div class="form-floating p-1">
+                        <input class="form-control" name="addPolyclinicContactNumber" required>
+                        <label for="addPolyclinicContactNumber">Номер:</label>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="formFile" class="form-label">Фото</label>
+                        <input class="form-control" type="file" id="formFile" asp-for="PhotoFormFile">
+                    </div>
+                    
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" asp-page-handler="AddPolyclinic">Добавить</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+@*ModalWindowShowPolyclinicPhoto*@
+<div class="modal" tabindex="-1" id="showPhotoModal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Просмотр фото поликлиники</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+
+            <div class="modal-body">
+                <img src="" class="img-fluid" id="viewerImage">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@*ModalWindowEditPolyclinic*@
+<div class="modal" tabindex="-1" id="editModal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактирование поликлиники</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <form class="form" method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" name="editPolyclinicId" id="editPolyclinicId" />
+
+                    <div class="form-floating p-1">
+                        <input class="form-control" name="editPolyclinicName" id="editPolyclinicName" required>
+                        <label for="editPolyclinicName">Наименование:</label>
+                    </div>
+
+                    <div class="form-floating p-1">
+                        <select class="form-select" name="editPolyclinicCityId" id="editPolyclinicCityId" required>
+                            <option selected>Не выбран</option>
+                            @if (Model.Towns != null)
+                            {
+                                @foreach (var town in Model.Towns)
+                                {
+                                    <option value="@town.Id">@town.Name</option>
+                                }
+                            }
+                        </select>
+                        <label for="editPolyclinicCityName">Город:</label>
+                    </div>
+
+                    <div class="form-floating p-1">
+                        <input class="form-control" name="editPolyclinicAddress" id="editPolyclinicAddress" required>
+                        <label for="editPolyclinicAddress">Адрес:</label>
+                    </div>
+
+                    <div class="form-floating p-1">
+                        <input class="form-control" name="editPolyclinicContactNumber" id="editPolyclinicContactNumber" required>
+                        <label for="editPolyclinicContactNumber">Номер:</label>
+                    </div>
+
+                    <input type="hidden"/>
+                    <div id="editPhotoBlock">
+                        <label for="formFile" class="form-label">Фото</label>
+                        <p class="text-muted">Фото изменится только при выборе другого фото</p>
+                        <input class="form-control" type="file" id="formFile" asp-for="PhotoFormFile">
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" asp-page-handler="EditPolyclinic">Сохранить</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function OnImageShow(imageInBytes) {
+        document.getElementById("viewerImage").src = "data:image/png;base64," + imageInBytes;
+    }
+
+    function OnEdit(
+        polyclinicId, 
+        polyclinicName, 
+        polyclinicCityId,
+        polyclinicAddress, 
+        polyclinicContactNumber,
+        polyclinicPhoto) {
+
+        document.getElementById("editPolyclinicId").value = polyclinicId;
+        document.getElementById("editPolyclinicName").value = polyclinicName;
+        document.getElementById("editPolyclinicCityId").value = polyclinicCityId;
+        document.getElementById("editPolyclinicAddress").value = polyclinicAddress;
+        document.getElementById("editPolyclinicContactNumber").value = polyclinicContactNumber;
+        document.getElementById("editPolyclinicPhoto").value = polyclinicPhoto;
+    }
+</script>

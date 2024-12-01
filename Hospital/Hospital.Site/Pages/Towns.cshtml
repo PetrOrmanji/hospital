@@ -1,0 +1,83 @@
+﻿@page
+@model TownsModel
+@{
+    ViewData["Title"] = "Города";
+}
+
+<h1>Города</h1>
+
+<form class="row g-2" method="post">
+    <div class="col-sm">
+        <input type="text" class="form-control" placeholder="Наименование города" name="townName" required>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary mb-3" asp-page-handler="AddTown">Добавить</button>
+    </div>
+</form>
+
+@if(Model.Towns != null)
+{
+    <table class="table table-stripped">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">Наименование</th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var town in Model.Towns)
+            {
+                <tr>
+                    <td>@town.Name</td>
+                    <td>
+                        <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#editModal" onclick="SendValuesToModal('@town.Id', '@town.Name')">
+                            <img src="img/edit.png">
+                        </button>
+                    </td>
+                    <form method="post">
+                        <td>
+                            <input type="hidden" name="townId" value="@town.Id" />
+                            <button asp-page-handler="RemoveTown" type="submit" class="btn btn-sm">
+                                <img src="img/remove.png">
+                            </button>
+                        </td>
+                    </form>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<div class="modal" tabindex="-1" id="editModal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактирование города</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <form class="form-floating" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="editTownId" id="editTownId" />
+
+                    <div class="form-floating">
+                        <input class="form-control" name="editTownName" id="editTownName" required>
+                        <label for="editTownName">Наименование города:</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" asp-page-handler="EditTown">Сохранить</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function SendValuesToModal(editTownId, editTownName) {
+        document.getElementById("editTownId").value = editTownId;
+        document.getElementById("editTownName").value = editTownName;
+    }
+</script>

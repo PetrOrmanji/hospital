@@ -1,0 +1,83 @@
+﻿@page
+@model Hospital.Site.Pages.RolesModel
+@{
+    ViewData["Title"] = "Роли";
+}
+
+<h1>Роли</h1>
+
+<form class="row g-2" method="post">
+    <div class="col-sm">
+        <input type="text" class="form-control" placeholder="Наименование роли" name="roleName" required>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary mb-3" asp-page-handler="AddRole">Добавить</button>
+    </div>
+</form>
+
+@if (Model.Roles != null)
+{
+    <table class="table table-stripped">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">Наименование</th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var role in Model.Roles)
+            {
+                <tr>
+                    <td>@role.Name</td>
+                    <td>
+                        <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#editModal" onclick="SendValuesToModal('@role.Id', '@role.Name')">
+                            <img src="img/edit.png">
+                        </button>
+                    </td>
+                    <form method="post">
+                    <td>
+                        <input type="hidden" name="roleId" value="@role.Id" />
+                        <button asp-page-handler="RemoveRole" type="submit" class="btn btn-sm">
+                            <img src="img/remove.png">
+                        </button>
+                    </td>
+                    </form>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<div class="modal" tabindex="-1" id="editModal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактирование роли</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <form class="form-floating" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="editRoleId" id="editRoleId" />
+
+                    <div class="form-floating">
+                        <input class="form-control" name="editRoleName" id="editRoleName" required>
+                        <label for="editRoleName">Наименование роли:</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" asp-page-handler="EditRole">Сохранить</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function SendValuesToModal(editRoleId, editRoleName) {
+        document.getElementById("editRoleId").value = editRoleId;
+        document.getElementById("editRoleName").value = editRoleName;
+    }
+</script>
